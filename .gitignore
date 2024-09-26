@@ -39,3 +39,4 @@ Thumbs.db
 
 # 忽略生成的數據文件
 *.txt
+!requirements.txt

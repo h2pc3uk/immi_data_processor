@@ -1,0 +1,14 @@
+altgraph==0.17.4
+chardet==5.2.0
+macholib==1.16.3
+Nuitka==2.4.8
+ordered-set==4.1.0
+packaging==24.1
+pefile==2024.8.26
+pip-autoremove==0.10.0
+psutil==6.0.0
+pyinstaller==6.9.0
+pyinstaller-hooks-contrib==2024.7
+pywin32-ctypes==0.2.3
+setuptools==70.3.0
+zstandard==0.23.0
