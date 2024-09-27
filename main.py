@@ -94,12 +94,6 @@ def verify_big5_file(file_path):
 def process_special_file(content, file_type):
     lines = content.splitlines()
 
-    # 移除第一行和最後一行（如果存在）
-    # if len(lines) > 2:
-    #     lines = lines[1:-1]
-    # elif len(lines) == 2:
-    #     lines = lines[1:]  # 如果只有兩行，僅移除第一行
-
     if len(lines) > 2:
         if lines[0].startswith('000002!'):
             lines = lines[1:]  # 移除第一行
@@ -179,18 +173,9 @@ def process_special_file(content, file_type):
             processed_lines.append(line.ljust(required_length))
         else:
             processed_lines.append(line[:required_length])
-    
-    # 過濾掉空行，但保留原有的空白字元
-    #processed_lines = [line for line in lines if line.strip()]
-
-    # 重新組合內容，保留原有的換行符號
-    # processed_content = '\n'.join(processed_lines)
 
     # 重新組合行並將 LF 換行符號改為 CRLF
     processed_content = '\r\n'.join(processed_lines)
-
-    # 確保檔案末尾只有一個換行符號
-    # processed_content = processed_content.rstrip('\n') + '\n'
 
     logging.debug(f'處理 {file_type} 檔案: 移除了首尾行，保留了列對齊，確保末尾有一個換行符號')
     return processed_content
