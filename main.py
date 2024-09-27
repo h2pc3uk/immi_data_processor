@@ -24,7 +24,9 @@ LOG_DIR = os.path.join(PROJECT_DIR, 'logs')
 DESKTOP_DIR = os.path.join(Path.home(), "Desktop")
 MODIFIED_DIR = os.path.join(DESKTOP_DIR, 'modified')
 
+# 確保目錄存在
 def ensure_dir(directory):
+    # 如果目錄不存在則建立
     if not os.path.exists(directory):
         os.makedirs(directory)
         logging.info(f'建立目錄: {directory}')
@@ -39,6 +41,7 @@ logging.basicConfig(filename=log_file, level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s',
                     encoding='utf-8')
 
+# 檢測檔案編碼
 def detect_encoding(file_path):
     try:
         import chardet
@@ -46,12 +49,14 @@ def detect_encoding(file_path):
         logging.error(f"ImportError: {e}")
         return None
 
+    # 讀取檔案的原始資料
     with open(file_path, 'rb') as file:
         raw_data = file.read()
     result = chardet.detect(raw_data)
     logging.debug(f"檔案 {file_path} 的編碼檢測結果：{result['encoding']} (信心度：{result['confidence']})")
     return result['encoding']
 
+# 讀取檔案
 def read_file(file_path):
     detected_encoding = detect_encoding(file_path)
     try:
@@ -62,7 +67,8 @@ def read_file(file_path):
     except Exception as e:
         logging.error(f'讀取檔案 {file_path} 時發生錯誤：{e}')
         return None
-
+    
+# 將內容轉換為 Big5 編碼
 def convert_to_big5(content):
     try:
         big5_content = content.encode('big5', errors='replace')
@@ -72,6 +78,7 @@ def convert_to_big5(content):
         logging.error(f'轉換為 Big5 編碼時發生錯誤：{e}')
         return None
 
+# 寫入 Big5 編碼檔案
 def write_big5_file(file_path, content):
     try:
         with open(file_path, 'wb') as file:
@@ -80,6 +87,7 @@ def write_big5_file(file_path, content):
     except Exception as e:
         logging.error(f'寫入檔案 {file_path} 時發生錯誤：{e}')
 
+# 驗證 Big5 編碼檔案
 def verify_big5_file(file_path):
     try:
         with open(file_path, 'rb') as file:
@@ -91,9 +99,11 @@ def verify_big5_file(file_path):
     except Exception as e:
         logging.error(f"讀取檔案 {file_path} 時發生錯誤：{e}")
 
+# 處理特殊檔案內容
 def process_special_file(content, file_type):
     lines = content.splitlines()
 
+    # 移除第一行和最後一行（根據特定條件）
     if len(lines) > 2:
         if lines[0].startswith('000002!'):
             lines = lines[1:]  # 移除第一行
@@ -180,6 +190,7 @@ def process_special_file(content, file_type):
     logging.debug(f'處理 {file_type} 檔案: 移除了首尾行，保留了列對齊，確保末尾有一個換行符號')
     return processed_content
 
+# 處理檔案
 def process_file(file_path):
     content = read_file(file_path)
     if content is None:
@@ -188,6 +199,7 @@ def process_file(file_path):
     logging.debug(f'原始內容預覽：\n{content[:100]}...')
 
     file_name = os.path.basename(file_path)
+    # 根據檔名判斷檔案類型並處理
     if any(prefix in file_name for prefix in ['Punish-', 'Fled-', 'Immi-']):
         file_type = next(prefix.rstrip('-') for prefix in ['Punish-', 'Fled-', 'Immi-'] if prefix in file_name)
         content = process_special_file(content, file_type)
@@ -206,6 +218,7 @@ def process_file(file_path):
 
     return output_path
 
+# 選擇檔案
 def select_files():
     logging.debug("進入 select_files 函數")
     root = tk.Tk()
@@ -214,6 +227,7 @@ def select_files():
     logging.debug(f"選擇的檔案: {files}")
     return files
 
+# 主程式
 def main():
     logging.debug("進入 main 函數")
     ensure_dir(MODIFIED_DIR)  # 確保 modified 資料夾存在
