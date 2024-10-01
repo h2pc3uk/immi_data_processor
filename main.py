@@ -7,9 +7,6 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 import logging
 from datetime import datetime
-import shutil
-import tempfile
-import time
 
 # 確定專案目錄
 if getattr(sys, 'frozen', False):
