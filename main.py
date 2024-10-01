@@ -99,27 +99,55 @@ def verify_big5_file(file_path):
     except Exception as e:
         logging.error(f"讀取檔案 {file_path} 時發生錯誤：{e}")
 
+def process_fled_file(parts):
+    result = ['I']
+    result.append(parts[1].ljust(10)[:10])
+    result.append(parts[2].ljust(50)[:50])
+    result.append(parts[3].ljust(15)[:15])
+    result.append(parts[4].ljust(3)[:3])
+    result.append(parts[5].rjust(8)[:8])
+    result.append(parts[6].rjust(1)[:1])
+    result.append(parts[7].rjust(8)[:8])
+    result.append(parts[8].rjust(8)[:8] if len(parts) > 8 else ' ' * 8)
+    result.append(' ' * 7)
+    return '!'.join(result)
+
+def process_immi_file(parts):
+    result = ['I' if parts[0] == 'I' else 'U']
+    result.append(parts[1].ljust(10)[:10])
+    result.append(' ' * 50)
+    result.append(parts[3].ljust(15)[:15])
+    result.append(parts[4].ljust(3)[:3])
+    result.append(parts[5].rjust(8)[:8])
+    result.append(parts[6].rjust(1)[:1])
+    result.append(parts[7].rjust(8)[:8])
+    result.append(parts[8].rjust(1)[:1])
+    result.append(' ' * 4)
+    return '!'.join(result)
+
+def process_punish_file(parts):
+    result = ['U']
+    result.append(parts[1].ljust(10)[:10])
+    result.append(' ' * 50)
+    result.append(parts[3].ljust(15)[:15])
+    result.append(parts[4].ljust(3)[:3])
+    result.append(parts[5].rjust(8)[:8])
+    result.append(parts[6].rjust(1)[:1])
+    result.append(parts[7].rjust(8)[:8])
+    result.append(parts[8].rjust(8)[:8])
+    result.append(' ' * 7)
+    return '!'.join(result)
+
 # 處理特殊檔案內容
 def process_special_file(content, file_type):
     lines = content.splitlines()
 
     # 移除第一行和最後一行（根據特定條件）
     if len(lines) > 2:
-        if lines[0].startswith('000002!'):
+        if lines[0].startswith('000002!') or lines[0].startswith('084852!'):
             lines = lines[1:]  # 移除第一行
         if lines[-1].startswith('@@'):
             lines = lines[:-1]  # 移除最後一行
-
-    # 根據檔案類型設定所需的長度
-    if file_type == 'Fled':
-        required_length = 120
-    elif file_type == 'Immi':
-        required_length = 110
-    elif file_type == 'Punish':
-        required_length = 120
-    else:
-        logging.error(f'未知的檔案類型：{file_type}')
-        return None
     
     # 處理每行，填充或裁剪至所需的長度
     processed_lines = []
@@ -129,60 +157,32 @@ def process_special_file(content, file_type):
             continue
 
         parts = line.split('!')
-        if file_type == 'Fled':
-            # 處理欄位對齊，補足或裁剪各欄位
+
+        try:
+             # 確保每一行都是固定長度
             if file_type == 'Fled':
-                # 處理 Fled 檔案，調整各欄位長度（按照你提供的目標格式）
-                if len(parts) >= 8:
-                    parts[1] = parts[1].ljust(10)    # 假設第二欄是ID長度10
-                    parts[2] = parts[2].ljust(50)    # 第三欄名字長度50
-                    parts[3] = parts[3].ljust(15)    # 第四欄（例如KA8765後面要加空格，長度15）
-                    parts[4] = parts[4].ljust(2) + ' '  # 第五欄（數字，如19，右邊有一個空格）
-                    parts[5] = parts[5].rjust(8)     # 第六欄（日期，19930918，長度8）
-                    parts[6] = parts[6].rjust(1)     # 第七欄（性別，0或1，長度1）
-                    parts[7] = parts[7].rjust(8)     # 第八欄（日期，20240214，長度8）
-                    if len(parts) > 8:
-                        parts[8] = parts[8].ljust(8) # 第九欄長度8（可能是空格或有值）
-                    # 組合回一整行
-                    line = '!'.join(parts)
+                processed_line = process_fled_file(parts)
+                required_length = 120
+            elif file_type == 'Immi':
+                processed_line = process_immi_file(parts)
+                required_length = 110
+            elif file_type == 'Punish':
+                processed_line = process_punish_file(parts)
+                required_length = 120
+            else:
+                logging.error(f'未知的檔案類型：{file_type}')
+                return None
+            
+            if len(processed_lines) < required_length:
+                processed_line = processed_line.ljust(required_length)
+            else:
+                processed_line = processed_line[:required_length]
         
-        elif file_type == 'Immi':
-            # 處理 Immi 檔案，調整各欄位的長度
-            if len(parts) >= 8:
-                parts[1] = parts[1].ljust(12).strip()  # 第二欄ID長度12（去除空格）
-                parts[2] = parts[2].ljust(50)  # 第三欄名字長度50
-                parts[3] = parts[3].ljust(8) + '       '  # 第四欄數字長度8，後面加7個空格
-                parts[4] = parts[4].ljust(2) + ' '  # 第五欄數字長度2，後面加1個空格
-                parts[5] = parts[5].rjust(8)   # 第六欄日期長度8（19780105）
-                parts[6] = parts[6].rjust(1)   # 第七欄性別長度1（0或1）
-                parts[7] = parts[7].rjust(8)   # 第八欄日期長度8（20240302）
-                line = '!'.join(parts)
-
-        elif file_type == 'Immi':
-            # 處理 Immi 檔案，調整各欄位的長度
-            if len(parts) >= 8:
-                parts[1] = parts[1].ljust(12)  # 第二欄ID長度12
-                parts[2] = parts[2].ljust(50)  # 第三欄名字長度50
-                parts[3] = parts[3].ljust(10) + '       '  # 第四欄數字長度8（如12345678），後面需要7個空格
-                parts[4] = parts[4].ljust(3) + ' '   # 第五欄數字長度2（如24，後面加一個空格）
-                parts[5] = parts[5].rjust(8)   # 第六欄日期長度8（19780105）
-                parts[6] = parts[6].rjust(1)   # 第七欄性別長度1（0或1）
-                parts[7] = parts[7].rjust(8)   # 第八欄日期長度8（20240302）
-                # 組合回一整行
-                line = '!'.join(parts)
-
-        # 確保每一行都是固定長度
-        if file_type == 'Fled':
-            required_length = 120
-        elif file_type == 'Immi':
-            required_length = 110
-        else:
-            required_length = 120  # 預設長度
-
-        if len(line) < required_length:
-            processed_lines.append(line.ljust(required_length))
-        else:
-            processed_lines.append(line[:required_length])
+            processed_lines.append(processed_line)
+        except Exception as e:
+            logging.error(f"處理行時發生錯誤： {line}")
+            logging.error(f"錯誤詳情： {str(e)}")
+            continue
 
     # 重新組合行並將 LF 換行符號改為 CRLF
     processed_content = '\r\n'.join(processed_lines)
@@ -199,12 +199,25 @@ def process_file(file_path):
     logging.debug(f'原始內容預覽：\n{content[:100]}...')
 
     file_name = os.path.basename(file_path)
+    file_type = None
+    for prefix in ['Punish-', 'Fled-', 'Immi-']:
+        if prefix in file_name:
+            file_type = prefix.rstrip('-')
+            break
+
     # 根據檔名判斷檔案類型並處理
-    if any(prefix in file_name for prefix in ['Punish-', 'Fled-', 'Immi-']):
-        file_type = next(prefix.rstrip('-') for prefix in ['Punish-', 'Fled-', 'Immi-'] if prefix in file_name)
+    if file_type:
+        if file_type == 'Immi':
+            content = content.replace('|', '!')
+            
         content = process_special_file(content, file_type)
-        logging.debug(f'處理後的 {file_type} 檔案內容預覽: \n{content[:100]}...')
-        logging.debug(f'處理後的 {file_type} 檔案最後幾行: \n{content[-100:]}')
+        if content is None:
+            logging.error(f'處理 {file_type} 檔案時發生錯誤')
+            return None
+        logging.debug(f'處理後的 {file_type} 檔案內容預覽： \n{content[:100]}...')
+        logging.debug(f'處理後的 {file_type} 檔案最後幾行： \n{content[-100:]}')
+    else:
+        logging.warning(f'未知的檔案類型：{file_name}')
 
     big5_content = convert_to_big5(content)
     if big5_content is None:
