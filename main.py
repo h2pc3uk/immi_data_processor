@@ -69,7 +69,7 @@ def read_file(file_path):
 def convert_to_big5(content):
     try:
         big5_content = content.encode('big5', errors='replace')
-        logging.debug(f'轉換為 Big5 編碼，長度：{len(big5_content)} 字節')
+        logging.debug(f'轉換為 Big5 編碼，長度：{len(big5_content)} 位元組')
         return big5_content
     except Exception as e:
         logging.error(f'轉換為 Big5 編碼時發生錯誤：{e}')
@@ -80,7 +80,7 @@ def write_big5_file(file_path, content):
     try:
         with open(file_path, 'wb') as file:
             file.write(content)
-        logging.debug(f'寫入 {len(content)} 字節到 {file_path}')
+        logging.debug(f'寫入 {len(content)} 位元組到 {file_path}')
     except Exception as e:
         logging.error(f'寫入檔案 {file_path} 時發生錯誤：{e}')
 
